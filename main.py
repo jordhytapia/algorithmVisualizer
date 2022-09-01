@@ -16,6 +16,8 @@ class DrawInfo:
         (190,190,190)
     ]
 
+    FONT = pygame.font.SysFont('comicsans', 30)
+    LGFONT = pygame.font.SysFont('comicsans', 40)
     sidePad = 100
     topPad = 150
 
@@ -38,6 +40,13 @@ class DrawInfo:
 
 def draw(drawInfo):
     drawInfo.window.fill(drawInfo.BG_COLOR)
+
+    controls = drawInfo.FONT.render("R-reset | S-start sorting | A-ascending | D-descending", 1, drawInfo.BLACK)
+    drawInfo.window.blit(controls, (drawInfo.width/2 - controls.get_width()/2, 5))
+
+    sorts = drawInfo.FONT.render("I-insertion sort | B-bubble sort", 1, drawInfo.BLACK)
+    drawInfo.window.blit(sorts, (drawInfo.width / 2 - sorts.get_width() / 2, 35))
+
     drawList(drawInfo)
     pygame.display.update()
 
@@ -66,6 +75,8 @@ def main():
 
     lst = generateStartingList(k, minVal, maxVal)
     drawInfo = DrawInfo(800, 600, lst)
+    sorting = False
+    ascending = True
 
 
     while run:
@@ -74,6 +85,19 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+            if event.type != pygame.KEYDOWN:
+                continue
+            if event.key == pygame.K_r:
+                lst = generateStartingList(k, minVal, maxVal)
+                drawInfo.set_list(lst)
+                sorting == False
+            elif event.key == pygame.K_SPACE and sorting == False:
+                sorting = True
+            elif event.key == pygame.K_a and not sorting:
+                ascending = True
+            elif event.key == pygame.K_d and not sorting:
+                ascending = False
+
     pygame.quit()
 
 if __name__ == "__main__":
