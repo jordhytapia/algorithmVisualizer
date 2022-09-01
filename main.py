@@ -31,6 +31,13 @@ class DrawInfo:
         self.blockHeight = round((self.height - self.topPad) / (self.maxVal - self.minVal))
         self.starX = self.sidePad // 2
 
+def draw(drawInfo):
+    drawInfo.window.fill(drawInfo.BG_COLOR)
+    pygame.display.update()
+
+def drawList(drawInfo):
+
+
 def generateStartingList(k, minVal, maxVal):
     lst = []
     for _ in range(k):
@@ -39,7 +46,29 @@ def generateStartingList(k, minVal, maxVal):
     return lst
 
 def main():
-    
+    run = True
+    clock = pygame.time.Clock()
+
+    k = 50
+    minVal = 0
+    maxVal = 100
+
+    lst = generateStartingList(k, minVal, maxVal)
+    drawInfo = DrawInfo(800, 600, lst)
+
+
+    while run:
+        clock.tick(60)
+        draw(drawInfo)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+    pygame.quit()
+
+if __name__ == "__main__":
+    main()
+
+
 
 
 
