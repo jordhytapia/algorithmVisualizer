@@ -1,3 +1,4 @@
+import math
 import pygame
 import random
 
@@ -35,7 +36,7 @@ class DrawInfo:
         self.maxVal = max(lst)
 
         self.blockWidth = round((self.width - self.sidePad) / len(lst))
-        self.blockHeight = round((self.height - self.topPad) / (self.maxVal - self.minVal))
+        self.blockHeight = math.floor((self.height - self.topPad) / (self.maxVal - self.minVal))
         self.startX = self.sidePad // 2
 
 def draw(drawInfo):
@@ -48,21 +49,52 @@ def draw(drawInfo):
     drawInfo.window.blit(sorts, (drawInfo.width / 2 - sorts.get_width() / 2, 35))
 
     drawList(drawInfo)
+
     pygame.display.update()
 
-def drawList(drawInfo):
+def drawList(drawInfo, colorPositions={}, clearBG = False):
     lst = drawInfo.lst
+
+    if clearBG:
+        clearRect = (drawInfo.sidePad // 2, drawInfo.topPad,
+                     drawInfo.width-drawInfo.sidePad, drawInfo.height-drawInfo.topPad)
+        pygame.draw.rect(drawInfo.window, drawInfo.BG_COLOR, clearRect)
+
     for i,val in enumerate(lst):
         x = drawInfo.startX + i * drawInfo.blockWidth
         y = drawInfo.height - (val - drawInfo.minVal) * drawInfo.blockHeight
+
         color = drawInfo.GRADIENTS[i % 3]
+
+        if i in colorPositions:
+            color = colorPositions[i]
+
         pygame.draw.rect(drawInfo.window, color, (x, y, drawInfo.blockWidth, drawInfo.height))
+
+    if clearBG:
+        pygame.display.update()
+
+
 
 def generateStartingList(k, minVal, maxVal):
     lst = []
     for _ in range(k):
         val = random.randint(minVal, maxVal)
         lst.append(val)
+    return lst
+
+def bubbleSort(drawInfo, ascending = True):
+    lst = drawInfo.lst
+
+    for i in range(len(lst) - 1):
+        for j in range(len(lst) - 1 - i):
+            num1 = lst[j]
+            num2 = lst[j+1]
+
+            if (num1 > num2 and ascending) or (num1 < num2 and not ascending):
+                lst[j], lst[j+1] = lst[j+1], lst[j]
+                drawList(drawInfo, {j:drawInfo.GREEN, j+1:drawInfo.RED}, True)
+                yield True
     return lst
 
 def main():
@@ -78,10 +110,21 @@ def main():
     sorting = False
     ascending = True
 
+    sortingAlg = bubbleSort
+    sortingAlgName = 'Bubble Sort'
+    sortingAlgGen = None
+
 
     while run:
         clock.tick(60)
-        draw(drawInfo)
+        if sorting:
+            try:
+                next(sortingAlgGen)
+            except StopIteration:
+                sorting = False
+        else:
+            draw(drawInfo)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -93,6 +136,7 @@ def main():
                 sorting == False
             elif event.key == pygame.K_SPACE and sorting == False:
                 sorting = True
+                sortingAlgGen = sortingAlg(drawInfo, ascending)
             elif event.key == pygame.K_a and not sorting:
                 ascending = True
             elif event.key == pygame.K_d and not sorting:
