@@ -39,14 +39,17 @@ class DrawInfo:
         self.blockHeight = math.floor((self.height - self.topPad) / (self.maxVal - self.minVal))
         self.startX = self.sidePad // 2
 
-def draw(drawInfo):
+def draw(drawInfo, algName, ascending):
     drawInfo.window.fill(drawInfo.BG_COLOR)
 
+    title = drawInfo.LGFONT.render(f"{algName} - {'Ascending' if ascending else 'Descending'}", 1, drawInfo.GREEN)
+    drawInfo.window.blit(title, (drawInfo.width / 2 - title.get_width() / 2, 5))
+
     controls = drawInfo.FONT.render("R-reset | S-start sorting | A-ascending | D-descending", 1, drawInfo.BLACK)
-    drawInfo.window.blit(controls, (drawInfo.width/2 - controls.get_width()/2, 5))
+    drawInfo.window.blit(controls, (drawInfo.width/2 - controls.get_width()/2, 55))
 
     sorts = drawInfo.FONT.render("I-insertion sort | B-bubble sort", 1, drawInfo.BLACK)
-    drawInfo.window.blit(sorts, (drawInfo.width / 2 - sorts.get_width() / 2, 35))
+    drawInfo.window.blit(sorts, (drawInfo.width / 2 - sorts.get_width() / 2, 95))
 
     drawList(drawInfo)
 
@@ -97,6 +100,27 @@ def bubbleSort(drawInfo, ascending = True):
                 yield True
     return lst
 
+def insertionSort(drawInfo, ascending = True):
+    lst = drawInfo.lst
+
+    for i in range(1, len(lst)):
+        current = lst[i]
+
+        while True:
+            ascendingSort = i > 0 and lst[i-1] > current and ascending
+            descendingSort = i > 0 and lst[i-1] < current and not ascending
+
+            if not ascendingSort and not descendingSort:
+                break
+
+            lst[i] = lst[i-1]
+            i = i - 1
+            lst[i] = current
+            drawList(drawInfo, {i-1 : drawInfo.GREEN, i: drawInfo.RED}, True)
+            yield True
+    return lst
+
+
 def main():
     run = True
     clock = pygame.time.Clock()
@@ -116,14 +140,14 @@ def main():
 
 
     while run:
-        clock.tick(60)
+        clock.tick(120)
         if sorting:
             try:
                 next(sortingAlgGen)
             except StopIteration:
                 sorting = False
         else:
-            draw(drawInfo)
+            draw(drawInfo, sortingAlgName, ascending)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -141,6 +165,12 @@ def main():
                 ascending = True
             elif event.key == pygame.K_d and not sorting:
                 ascending = False
+            elif event.key == pygame.K_i and not sorting:
+                sortingAlg = insertionSort
+                sortingAlgName = 'Insertion Sort'
+            elif event.key == pygame.K_b and not sorting:
+                sortingAlg = bubbleSort
+                sortingAlgName = 'Bubble Sort'
 
     pygame.quit()
 
